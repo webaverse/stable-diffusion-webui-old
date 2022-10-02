@@ -25,4 +25,3 @@ __pycache__
 /.idea
 notification.mp3
 /SwinIR
-db.sqlite3
