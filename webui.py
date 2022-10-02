@@ -78,8 +78,18 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
+def initHS():
+    import headless_server as hs
+    hs.run_server()
 
 def webui():
+    import modules.db_logger as db
+    db.initDbConnection()
+
+    
+    hsThread = threading.Thread(target=initHS)
+    hsThread.start()
+    
     # make the program just exit at ctrl+c without waiting for anything
     def sigint_handler(sig, frame):
         print(f'Interrupted with signal {sig} in {frame}')
