@@ -136,6 +136,19 @@ else
 fi
 
 printf "\n%s\n" "${delimiter}"
+if [[ -f /etc/authbind/byport/80 ]]
+then
+    printf "Authbind already set up"
+else
+    printf "Creating authbind for port 80"
+    sudo touch /etc/authbind/byport/80
+    sudo chmod 777 /etc/authbind/byport/80
+fi
+printf "\n%s\n" "${delimiter}"
+
+pip install flask
+
+printf "\n%s\n" "${delimiter}"
 printf "Launching launch.py..."
 printf "\n%s\n" "${delimiter}"
 "${python_cmd}" "${LAUNCH_SCRIPT}" --listen
