@@ -82,48 +82,40 @@ def initHS():
     import headless_server as hs
     hs.run_server()
 
-def webui():
-    import modules.db_logger as db
-    db.initDbConnection()
-
-    
-    hsThread = threading.Thread(target=initHS)
-    hsThread.start()
-    
-    # make the program just exit at ctrl+c without waiting for anything
-    def sigint_handler(sig, frame):
-        print(f'Interrupted with signal {sig} in {frame}')
-        os._exit(0)
-
-    signal.signal(signal.SIGINT, sigint_handler)
-
-    while 1:
-
-        demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
-        
-        demo.launch(
-            share=cmd_opts.share,
-            server_name="0.0.0.0" if cmd_opts.listen else None,
-            server_port=cmd_opts.port,
-            debug=cmd_opts.gradio_debug,
-            auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
-            inbrowser=cmd_opts.autolaunch,
-            prevent_thread_lock=True
-        )
-
+def webui(mode='api', dblog=False):
+    if dblog:
+        import modules.db_logger as db
+        db.initDbConnection()
+    if mode == 'api':
+        initHS();
+    else if mode == 'ui':
         while 1:
-            time.sleep(0.5)
-            if getattr(demo, 'do_restart', False):
-                time.sleep(0.5)
-                demo.close()
-                time.sleep(0.5)
-                break
 
-        print('Reloading Custom Scripts')
-        modules.scripts.reload_scripts(os.path.join(script_path, "scripts"))
-        print('Reloading modules: modules.ui')
-        importlib.reload(modules.ui)
-        print('Restarting Gradio')
+            demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
+            
+            demo.launch(
+                share=cmd_opts.share,
+                server_name="0.0.0.0" if cmd_opts.listen else None,
+                server_port=cmd_opts.port,
+                debug=cmd_opts.gradio_debug,
+                auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
+                inbrowser=cmd_opts.autolaunch,
+                prevent_thread_lock=True
+            )
+
+            while 1:
+                time.sleep(0.5)
+                if getattr(demo, 'do_restart', False):
+                    time.sleep(0.5)
+                    demo.close()
+                    time.sleep(0.5)
+                    break
+
+            print('Reloading Custom Scripts')
+            modules.scripts.reload_scripts(os.path.join(script_path, "scripts"))
+            print('Reloading modules: modules.ui')
+            importlib.reload(modules.ui)
+            print('Restarting Gradio')
 
 
 
