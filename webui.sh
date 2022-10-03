@@ -151,4 +151,4 @@ pip install flask
 printf "\n%s\n" "${delimiter}"
 printf "Launching launch.py..."
 printf "\n%s\n" "${delimiter}"
-"${python_cmd}" "${LAUNCH_SCRIPT}" --listen
+authbind --deep "${python_cmd}" "${LAUNCH_SCRIPT}" --listen

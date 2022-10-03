@@ -14,8 +14,6 @@ import modules.processing as processing
 from modules.ui import plaintext_to_html
 import modules.images as images
 import modules.scripts
-from modules.db_logger import addQuery
-
 
 def process_batch(p, input_dir, output_dir, args):
     processing.fix_seed(p)
@@ -128,6 +126,5 @@ def img2img(mode: int, prompt: str, negative_prompt: str, prompt_style: str, pro
         print(generation_info_js)
 
     fileName =  str(processed.all_seeds[0]) + '-' + str(processed.all_prompts[0]) + '.png'
-    addQuery("img2img", fileName, prompt, negative_prompt, prompt_style, prompt_style2, steps, sampler_index, restore_faces, tiling, n_iter, batch_size, cfg_scale, seed, subseed, subseed_strength, seed_resize_from_h, seed_resize_from_w, seed_enable_extras, height, width, None, None, denoising_strength)
 
     return processed.images, generation_info_js, plaintext_to_html(processed.info)

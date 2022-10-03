@@ -78,17 +78,14 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
-def initHS():
-    import headless_server as hs
-    hs.run_server()
-
 def webui(mode='api', dblog=False):
     if dblog:
         import modules.db_logger as db
         db.initDbConnection()
     if mode == 'api':
-        initHS();
-    else if mode == 'ui':
+        import headless_server as hs
+        hs.run_server()
+    elif mode == 'ui':
         while 1:
 
             demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
