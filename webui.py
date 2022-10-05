@@ -85,10 +85,11 @@ def webui(mode='api|ui', dblog=False):
     if dblog:
         import modules.db_logger as db
         db.initDbConnection()
-    if mode.includes('api'):
+    # check if mode includes api
+    if mode.find('api') != -1:
         import headless_server as hs
         hs.run_server()
-    elif mode.includes('ui'):
+    if mode.find('ui') != -1:
         while 1:
 
             demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
