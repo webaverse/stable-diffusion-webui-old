@@ -2,6 +2,7 @@ import os
 import threading
 import time
 import importlib
+from xml.etree.ElementInclude import include
 from modules import devices
 from modules.paths import script_path
 import signal
@@ -26,6 +27,8 @@ from modules import devices
 from modules import modelloader
 from modules.paths import script_path
 from modules.shared import cmd_opts
+
+import argparse
 
 modelloader.cleanup_models()
 modules.sd_models.setup_model()
@@ -78,14 +81,14 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
-def webui(mode='api', dblog=False):
+def webui(mode='api|ui', dblog=False):
     if dblog:
         import modules.db_logger as db
         db.initDbConnection()
-    if mode == 'api':
+    if mode.includes('api'):
         import headless_server as hs
         hs.run_server()
-    elif mode == 'ui':
+    elif mode.includes('ui'):
         while 1:
 
             demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
@@ -114,7 +117,9 @@ def webui(mode='api', dblog=False):
             importlib.reload(modules.ui)
             print('Restarting Gradio')
 
-
-
 if __name__ == "__main__":
-    webui()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, default='api|ui', help='api|ui|api|ui')
+    parser.add_argument('--dblog', type=bool, default=False, help='True|False')
+    args = parser.parse_args()
+    webui(args.mode, args.dblog)
