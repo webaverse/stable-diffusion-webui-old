@@ -6,6 +6,7 @@ from modules.img2img import img2img
 
 from modules.txt2img import txt2img
 from modules.db_logger import getQueries
+from urllib import request as rq
 
 import shutil
 import os
@@ -28,7 +29,10 @@ def mkZipResponse(data):
     )
 
 def load_img(postData):
-    image = Image.open(io.BytesIO(postData)).convert('RGB')
+    im = None
+    with rq.urlopen(postData)  as rsp:
+        im = rsp.read()
+    image = Image.open(io.BytesIO(im)).convert('RGB')
     return image
 
 def create_img(w, h, color):
@@ -128,24 +132,23 @@ def mod():
     s = request.args.get("s")
     response = None
     if s is None or s == "":
-        response = make_response("no text provided", 400)
-    else:
-        prompt = s
-        init_image = None
-        if request.method == "GET":
-            color_hex = None
-            if request.args.get("color") is not None:
-                color_hex = request.args.get("color")
-            else:
-                color_hex = "FFFFFF"
-            color_tuple = hex_color_string_to_tuple(color_hex)
-            init_image = create_img(512, 512, color_tuple)
+        s = " "
+    
+    init_image = None
+    if request.method == "GET":
+        color_hex = None
+        if request.args.get("color") is not None:
+            color_hex = request.args.get("color")
         else:
-            postData = request.get_data()
-            init_image = load_img(postData)
+            color_hex = "FFFFFF"
+        color_tuple = hex_color_string_to_tuple(color_hex)
+        init_image = create_img(512, 512, color_tuple)
+    else:
+        postData = request.get_data()
+        init_image = load_img(postData.decode("utf-8"))
     
     args = (0, False, None, '', False, 1, '', 4, '', True, False)
-    data = img2img(0, prompt, '', '', '', init_image, None, None, None, 0, 20, 0, 4, 0, False, False, 1, 1, 7, 0.75, -1.0, -1.0, 0, 0, 0, False, 512, 512, 0, False, 32, 0, '', '', *args)
+    data = img2img(0, s, '', '', '', init_image, None, None, None, 0, 20, 0, 4, 0, False, False, 1, 1, 7, 0.75, -1.0, -1.0, 0, 0, 0, False, 512, 512, 0, False, 32, 0, '', '', *args)
     img_byte_arr = io.BytesIO()
     data[0][0].save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
@@ -165,21 +168,19 @@ def mod_mass():
     s = request.args.get("s")
     response = None
     if s is None or s == "":
-        response = make_response("no text provided", 400)
-    else:
-        prompt = s
-        init_image = None
-        if request.method == "GET":
-            color_hex = None
-            if request.args.get("color") is not None:
-                color_hex = request.args.get("color")
-            else:
-                color_hex = "FFFFFF"
-            color_tuple = hex_color_string_to_tuple(color_hex)
-            init_image = create_img(512, 512, color_tuple)
+        s = " "
+    init_image = None
+    if request.method == "GET":
+        color_hex = None
+        if request.args.get("color") is not None:
+            color_hex = request.args.get("color")
         else:
-            postData = request.get_data()
-            init_image = load_img(postData)
+            color_hex = "FFFFFF"
+        color_tuple = hex_color_string_to_tuple(color_hex)
+        init_image = create_img(512, 512, color_tuple)
+    else:
+        postData = request.get_data()
+        init_image = load_img(postData.decode("utf-8"))
     
     count = request.args.get('count')
     if count is None or count == "":
@@ -192,7 +193,7 @@ def mod_mass():
     args = (0, False, None, '', False, 1, '', 4, '', True, False)
     i = 0
     while i < count:
-        data = img2img(0, prompt, '', '', '', init_image, None, None, None, 0, 20, 0, 4, 0, False, False, 1, 1, 7, 0.75, -1.0, -1.0, 0, 0, 0, False, 512, 512, 0, False, 32, 0, '', '', *args)
+        data = img2img(0, s, '', '', '', init_image, None, None, None, 0, 20, 0, 4, 0, False, False, 1, 1, 7, 0.75, -1.0, -1.0, 0, 0, 0, False, 512, 512, 0, False, 32, 0, '', '', *args)
         data[0][0].save(f"{folderName}/image{i}.png", format='PNG')
         i += 1
     
@@ -213,7 +214,6 @@ def mod_mass():
     response = make_response(mkZipResponse(data))
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
-
 
 @app.route('/db_data', methods=['GET'])
 def db_data():
