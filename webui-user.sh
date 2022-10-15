@@ -10,6 +10,7 @@
 #clone_dir="stable-diffusion-webui"
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
+aws s3 sync s3://webaverse-sd-models/models/ models/Stable-diffusion
 export COMMANDLINE_ARGS=""
 
 # python3 executable
