@@ -46,6 +46,9 @@ def hex_color_string_to_tuple(hex_color):
 def index():
     return redirect(DEFAULT_UI_URL, code=302)
 
+model_alias = {'compvis': 'sd-1.4-model'
+              ,'waifu': 'wd-v1-3-float32'}
+
 @app.route('/image', methods=['GET', 'OPTIONS'])
 def image():
     if request.method == "OPTIONS":
@@ -58,8 +61,8 @@ def image():
         s = request.args.get("s")
         mod = request.args.get("model")
         response = None
-        if mod is not None:
-            ckpt = get_closet_checkpoint_match(mod)
+        if mod in model_alias.keys():
+            ckpt = get_closet_checkpoint_match(model_alias[mod])
             if ckpt is None:
                 response = make_response("no match for checkpoint \"{}\" found".format(mod), 400)
             elif ckpt != shared.opts.sd_model_checkpoint:
@@ -83,7 +86,6 @@ def image():
 
 @app.route('/mod', methods=['GET', 'POST', 'OPTIONS'])
 def mod():
-    response = None
     if request.method == "OPTIONS":
         response = make_response("", 200)
         response.headers["Access-Control-Allow-Origin"] = "*"
@@ -91,8 +93,10 @@ def mod():
         response.headers["Access-Control-Allow-Methods"] = "*"
     elif jobLock.acquire(timeout=10):
         s = request.args.get("s")
-        if mod is not None:
-            ckpt = get_closet_checkpoint_match(mod)
+        mod = request.args.get("model")
+        response = None
+        if mod in model_alias.keys():
+            ckpt = get_closet_checkpoint_match(model_alias[mod])
             if ckpt is None:
                 response = make_response("no match for checkpoint \"{}\" found".format(mod), 400)
             elif ckpt != shared.opts.sd_model_checkpoint:
