@@ -126,7 +126,7 @@ def mod():
     if denoising_strength is None or denoising_strength == "":
         denoising_strength = 0.75
     
-    init_image = None
+    init_img = None
     if request.method == "GET":
         color_hex = None
         if request.args.get("color") is not None:
@@ -134,47 +134,13 @@ def mod():
         else:
             color_hex = "FFFFFF"
         color_tuple = hex_color_string_to_tuple(color_hex)
-        init_image = create_img(512, 512, color_tuple)
+        init_img = create_img(512, 512, color_tuple)
     else:
         postData = request.get_data()
-        init_image = load_img(postData.decode("utf-8"))
+        init_img = load_img(postData.decode("utf-8"))
+    args=(0, False, None, '', False, 1, '', 4, '', True, False)
+    data = img2img(0, s, '', '', '', init_img, None, None, None, 0, steps, 0, 4, 0, False, tiling, 1, 1, 7.5, denoising_strength, -1, -1, 0, 0, 0, False, height, width, 0, False, 32, 0, '', '', *args)
 
-    data = img2img(
-        mode=0,
-        prompt=s,
-        negative_prompt='',
-        prompt_style='',
-        prompt_style2='',
-        init_img=init_image,
-        init_img_with_mask=None,
-        init_img_inpaint=None,
-        init_mask_inpaint=None,
-        mask_mode=0,
-        steps=steps,
-        sampler_index=0,
-        mask_blur=4,
-        inpainting_fill=0,
-        inpainting_mask_invert=False,
-        restore_faces=False,
-        tiling=tiling,
-        n_iter=n_iter,
-        batch_size=1,
-        cfg_scale=7.5,
-        denoising_strength=denoising_strength,
-        seed=0,
-        subseed=0,
-        subseed_strength=0,
-        seed_resize_from_h=0,
-        seed_resize_from_w=0,
-        seed_enable_extras=False,
-        height=height,
-        width=width,
-        resize_mode=0,
-        inpaint_full_res=False,
-        inpaint_full_res_padding=0,
-        img2img_batch_input_dir='',
-        img2img_batch_output_dir='',
-        args=(0, False, None, '', False, 1, '', 4, '', True, False))
     img_byte_arr = io.BytesIO()
     data[0][0].save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
