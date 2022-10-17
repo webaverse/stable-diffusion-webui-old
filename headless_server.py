@@ -174,7 +174,7 @@ def mod():
         inpaint_full_res_padding=0,
         img2img_batch_input_dir='',
         img2img_batch_output_dir='',
-        *args=*args)
+        *args)
     img_byte_arr = io.BytesIO()
     data[0][0].save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
