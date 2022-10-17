@@ -102,6 +102,30 @@ def mod():
     if s is None or s == "":
         s = " "
     
+    steps = request.args.get("steps")
+    if steps is None or steps == "":
+        steps = 20
+        
+    tiling = request.args.get("tiling")
+    if tiling is None or tiling == "":
+        tiling = False
+
+    n_iter = request.args.get("n")
+    if n_iter is None or n_iter == "":
+        n_iter = 1
+        
+    height = request.args.get("h")
+    if height is None or height == "":
+        height = 512
+
+    width = request.args.get("w")
+    if width is None or width == "":
+        width = 512
+        
+    denoising_strength = request.args.get("strength")
+    if denoising_strength is None or denoising_strength == "":
+        denoising_strength = 0.75
+    
     init_image = None
     if request.method == "GET":
         color_hex = None
@@ -116,7 +140,41 @@ def mod():
         init_image = load_img(postData.decode("utf-8"))
     
     args = (0, False, None, '', False, 1, '', 4, '', True, False)
-    data = img2img(0, s, '', '', '', init_image, None, None, None, 0, 20, 0, 4, 0, False, False, 1, 1, 7, 0.75, -1.0, -1.0, 0, 0, 0, False, 512, 512, 0, False, 32, 0, '', '', *args)
+    data = img2img(
+        mode=0,
+        prompt=s,
+        negative_prompt='',
+        prompt_style='',
+        prompt_style2='',
+        init_image=init_image,
+        init_image_with_mask=None,
+        init_img_inpaint=None,
+        init_mask_inpaint=None,
+        mask_mode=0,
+        steps=steps,
+        sampler_index=0,
+        mask_blur=4,
+        inpainting_fill=0,
+        restore_faces=False,
+        tiling=tiling,
+        n_iter=n_iter,
+        batch_size=1,
+        cfg_scale=7.5,
+        denoising_strength=denoising_strength,
+        seed=0,
+        subseed=0,
+        subseed_strength=0,
+        seed_resize_from_h=0,
+        seed_resize_from_w=0,
+        seed_enable_extras=False,
+        height=height,
+        width=width,
+        resize_mode=0,
+        inpaint_full_res=False,
+        inpaint_full_res_padding=0,
+        img2img_batch_input_dir='',
+        img2img_batch_output_dir='',
+        *args=*args)
     img_byte_arr = io.BytesIO()
     data[0][0].save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
