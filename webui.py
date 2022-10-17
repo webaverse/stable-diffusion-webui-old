@@ -81,22 +81,20 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
-def webui(mode='api|ui', dblog=False):
+def webui(dblog=False):
     if dblog:
         import modules.db_logger as db
         db.initDbConnection()
     # check if mode includes api
-    if mode.find('api') != -1:
         import headless_server as hs
         hs.run_server()
-    if mode.find('ui') != -1:
         while 1:
 
             demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
             
             demo.launch(
                 share=cmd_opts.share,
-                server_name="0.0.0.0" if cmd_opts.listen else None,
+                server_name="0.0.0.0",
                 server_port=cmd_opts.port,
                 debug=cmd_opts.gradio_debug,
                 auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
@@ -120,7 +118,6 @@ def webui(mode='api|ui', dblog=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default='api|ui', help='api|ui|api|ui')
     parser.add_argument('--dblog', type=bool, default=False, help='True|False')
     args = parser.parse_args()
-    webui(args.mode, args.dblog)
+    webui(args.dblog)
