@@ -138,7 +138,7 @@ def mod():
     else:
         postData = request.get_data()
         init_image = load_img(postData.decode("utf-8"))
-    
+
     data = img2img(
         mode=0,
         prompt=s,
@@ -173,7 +173,8 @@ def mod():
         inpaint_full_res=False,
         inpaint_full_res_padding=0,
         img2img_batch_input_dir='',
-        img2img_batch_output_dir='')
+        img2img_batch_output_dir='',
+        args=(0, False, None, '', False, 1, '', 4, '', True, False))
     img_byte_arr = io.BytesIO()
     data[0][0].save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
