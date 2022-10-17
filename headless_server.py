@@ -154,6 +154,7 @@ def mod():
         sampler_index=0,
         mask_blur=4,
         inpainting_fill=0,
+        inpainting_mask_invert=False,
         restore_faces=False,
         tiling=tiling,
         n_iter=n_iter,

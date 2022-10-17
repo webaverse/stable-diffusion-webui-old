@@ -81,7 +81,7 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
-def webui(mode='api|ui', dblog=False):
+def webui(dblog=False):
     if dblog:
         import modules.db_logger as db
         db.initDbConnection()
@@ -118,7 +118,6 @@ def webui(mode='api|ui', dblog=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default='api|ui', help='api|ui|api|ui')
     parser.add_argument('--dblog', type=bool, default=False, help='True|False')
     args = parser.parse_args()
-    webui(args.mode, args.dblog)
+    webui(args.dblog)
