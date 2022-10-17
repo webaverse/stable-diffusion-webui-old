@@ -2,6 +2,7 @@ import os
 import threading
 import time
 import importlib
+from xml.etree.ElementInclude import include
 from modules import devices
 from modules.paths import script_path
 import signal
@@ -26,6 +27,8 @@ from modules import devices
 from modules import modelloader
 from modules.paths import script_path
 from modules.shared import cmd_opts
+
+import argparse
 
 modelloader.cleanup_models()
 modules.sd_models.setup_model()
@@ -78,54 +81,46 @@ modules.scripts.load_scripts(os.path.join(script_path, "scripts"))
 shared.sd_model = modules.sd_models.load_model()
 shared.opts.onchange("sd_model_checkpoint", wrap_queued_call(lambda: modules.sd_models.reload_model_weights(shared.sd_model)))
 
-def initHS():
-    import headless_server as hs
-    hs.run_server()
-
-def webui():
-    import modules.db_logger as db
-    db.initDbConnection()
-
-    
-    hsThread = threading.Thread(target=initHS)
-    hsThread.start()
-    
-    # make the program just exit at ctrl+c without waiting for anything
-    def sigint_handler(sig, frame):
-        print(f'Interrupted with signal {sig} in {frame}')
-        os._exit(0)
-
-    signal.signal(signal.SIGINT, sigint_handler)
-
-    while 1:
-
-        demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
-        
-        demo.launch(
-            share=cmd_opts.share,
-            server_name="0.0.0.0" if cmd_opts.listen else None,
-            server_port=cmd_opts.port,
-            debug=cmd_opts.gradio_debug,
-            auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
-            inbrowser=cmd_opts.autolaunch,
-            prevent_thread_lock=True
-        )
-
+def webui(mode='api|ui', dblog=False):
+    if dblog:
+        import modules.db_logger as db
+        db.initDbConnection()
+    # check if mode includes api
+    if mode.find('api') != -1:
+        import headless_server as hs
+        hs.run_server()
+    if mode.find('ui') != -1:
         while 1:
-            time.sleep(0.5)
-            if getattr(demo, 'do_restart', False):
+
+            demo = modules.ui.create_ui(wrap_gradio_gpu_call=wrap_gradio_gpu_call)
+            
+            demo.launch(
+                share=cmd_opts.share,
+                server_name="0.0.0.0" if cmd_opts.listen else None,
+                server_port=cmd_opts.port,
+                debug=cmd_opts.gradio_debug,
+                auth=[tuple(cred.split(':')) for cred in cmd_opts.gradio_auth.strip('"').split(',')] if cmd_opts.gradio_auth else None,
+                inbrowser=cmd_opts.autolaunch,
+                prevent_thread_lock=True
+            )
+
+            while 1:
                 time.sleep(0.5)
-                demo.close()
-                time.sleep(0.5)
-                break
+                if getattr(demo, 'do_restart', False):
+                    time.sleep(0.5)
+                    demo.close()
+                    time.sleep(0.5)
+                    break
 
-        print('Reloading Custom Scripts')
-        modules.scripts.reload_scripts(os.path.join(script_path, "scripts"))
-        print('Reloading modules: modules.ui')
-        importlib.reload(modules.ui)
-        print('Restarting Gradio')
-
-
+            print('Reloading Custom Scripts')
+            modules.scripts.reload_scripts(os.path.join(script_path, "scripts"))
+            print('Reloading modules: modules.ui')
+            importlib.reload(modules.ui)
+            print('Restarting Gradio')
 
 if __name__ == "__main__":
-    webui()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, default='api|ui', help='api|ui|api|ui')
+    parser.add_argument('--dblog', type=bool, default=False, help='True|False')
+    args = parser.parse_args()
+    webui(args.mode, args.dblog)

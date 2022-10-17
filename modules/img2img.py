@@ -14,8 +14,6 @@ import modules.processing as processing
 from modules.ui import plaintext_to_html
 import modules.images as images
 import modules.scripts
-from modules.db_logger import addQuery
-
 
 def process_batch(p, input_dir, output_dir, args):
     processing.fix_seed(p)
@@ -24,8 +22,10 @@ def process_batch(p, input_dir, output_dir, args):
 
     print(f"Will process {len(images)} images, creating {p.n_iter * p.batch_size} new images for each.")
 
+    save_normally = output_dir == ''
+
     p.do_not_save_grid = True
-    p.do_not_save_samples = True
+    p.do_not_save_samples = not save_normally
 
     state.job_count = len(images) * p.n_iter
 
@@ -49,7 +49,8 @@ def process_batch(p, input_dir, output_dir, args):
                 left, right = os.path.splitext(filename)
                 filename = f"{left}-{n}{right}"
 
-            processed_image.save(os.path.join(output_dir, filename))
+            if not save_normally:
+                processed_image.save(os.path.join(output_dir, filename))
 
 
 def img2img(mode: int, prompt: str, negative_prompt: str, prompt_style: str, prompt_style2: str, init_img, init_img_with_mask, init_img_inpaint, init_mask_inpaint, mask_mode, steps: int, sampler_index: int, mask_blur: int, inpainting_fill: int, restore_faces: bool, tiling: bool, n_iter: int, batch_size: int, cfg_scale: float, denoising_strength: float, seed: int, subseed: int, subseed_strength: float, seed_resize_from_h: int, seed_resize_from_w: int, seed_enable_extras: bool, height: int, width: int, resize_mode: int, inpaint_full_res: bool, inpaint_full_res_padding: int, inpainting_mask_invert: int, img2img_batch_input_dir: str, img2img_batch_output_dir: str, *args):
@@ -127,7 +128,7 @@ def img2img(mode: int, prompt: str, negative_prompt: str, prompt_style: str, pro
     if opts.samples_log_stdout:
         print(generation_info_js)
 
-    fileName =  str(processed.all_seeds[0]) + '-' + str(processed.all_prompts[0]) + '.png'
-    addQuery("img2img", fileName, prompt, negative_prompt, prompt_style, prompt_style2, steps, sampler_index, restore_faces, tiling, n_iter, batch_size, cfg_scale, seed, subseed, subseed_strength, seed_resize_from_h, seed_resize_from_w, seed_enable_extras, height, width, None, None, denoising_strength)
+    if opts.do_not_show_images:
+        processed.images = []
 
     return processed.images, generation_info_js, plaintext_to_html(processed.info)
